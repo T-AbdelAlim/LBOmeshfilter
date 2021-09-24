@@ -1,129 +1,14 @@
 # modules
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
-import pyvista as pv
 import pyacvd
-from ply_writer import write_ply_file
-
-import spharapy.trimesh as tm
+import pyvista as pv
 import spharapy.spharabasis as sb
-import spharapy.datasets as sd
+import spharapy.trimesh as tm
 
-def LBO_reconstruction(basis_functions, EV_upper):
-    # each colomn in EV matrix phi is an eigenvector
-    phi = basis_functions # phi = eigenvector matrix
-    phi_rec = np.zeros([len(phi),len(phi)])
-    phi_rec[:,:EV_upper] = phi[:,:EV_upper]
-    phi_t = phi_rec.T
-
-    # eigenvector multiplied with vertices x,y,z
-    px_hat = np.matmul(phi_t,vertlist[::, 0])
-    py_hat = np.matmul(phi_t,vertlist[::, 1])
-    pz_hat = np.matmul(phi_t,vertlist[::, 2])
-
-    # reconstructed vertices
-    px_rec = np.matmul(phi, px_hat)
-    py_rec = np.matmul(phi, py_hat)
-    pz_rec = np.matmul(phi, pz_hat)
-    p_rec = np.stack([px_rec,py_rec,pz_rec])
-
-    reconstruction_verts = p_rec.T
-    return reconstruction_verts
-
-def my_write_ply_file(points, faces, savepath):
-    numVertices = len(points)
-    numFaces = len(faces)
-    faces = faces.reshape((numFaces, 3))
-    with open(savepath, 'w+') as fileOut:
-        # Writes ply header
-        fileOut.write("ply\n")
-        fileOut.write("format ascii 1.0\n")
-        fileOut.write("comment VCGLIB generated\n")
-        fileOut.write("element vertex " + str(numVertices) + "\n")
-        fileOut.write("property float x\n")
-        fileOut.write("property float y\n")
-        fileOut.write("property float z\n")
-
-        fileOut.write("element face " + str(numFaces) + "\n")
-        fileOut.write("property list uchar int vertex_indices\n")
-        fileOut.write("end_header\n")
-
-        for i in range(numVertices):
-            # writes "x y z" of current vertex
-            fileOut.write(str(points[i,0]) + " " + str(points[i,1]) + " " + str(points[i,2]) + "255\n")
-
-
-        # Writes faces
-        for f in faces:
-            #print(f)
-            # WARNING: Subtracts 1 to vertex ID because PLY indices start at 0 and OBJ at 1
-            fileOut.write("3 " + str(f[0]) + " " + str(f[1]) + " " + str(f[2]) + "\n")
-
-# if __name__ == '__main__':
-#     mesh_in = pv.read('test.ply')
-#     new_mesh = pyacvd.Clustering(mesh_in)
-#     new_mesh.subdivide(3)
-#     new_mesh.cluster(5023)
-#     mesh_in = new_mesh.create_mesh()
-#
-#     vertlist = np.array(mesh_in.points)
-#     trilist = np.array(mesh_in.faces)
-#     print('vertices = ', vertlist.shape)
-#     print('triangles = ', trilist.shape)
-#
-#     numFaces = mesh_in.n_faces
-#     trilist = trilist.reshape((numFaces, 4))[::, 1:4]
-#
-#     # create an instance of the TriMesh class
-#     cranial_mesh = tm.TriMesh(trilist, vertlist)
-#
-#     # Laplacian matrix
-#     L = cranial_mesh.laplacianmatrix('half_cotangent')
-#     L_numpy = np.array(L)
-#
-#     # basis functions
-#     sphara_basis = sb.SpharaBasis(cranial_mesh, 'unit')
-#     basis_functions, natural_frequencies = sphara_basis.basis()
-#
-#     # sphinx_gallery_thumbnail_number = 2
-#     figsb1, axes1 = plt.subplots(nrows=2, ncols=4, figsize=(9, 5),
-#                                  subplot_kw={'projection': '3d'})
-#
-#     BF_list = [4, 10, 50, 100, 200, 500, 1000, 4000]
-#
-#     for i in range(np.size(axes1)):
-#         colors = np.mean(basis_functions[trilist, BF_list[i]], axis=1)
-#         ax = axes1.flat[i]
-#         plt.grid()
-#         ax.view_init(elev=70., azim=15.)
-#         ax.set_aspect('auto')
-#
-#         trisurfplot = ax.plot_trisurf(vertlist[:, 0], vertlist[:, 1],
-#                                       vertlist[:, 2], triangles=trilist,
-#                                       cmap=plt.cm.bwr,
-#                                       edgecolor='white', linewidth=0.)
-#         trisurfplot.set_array(colors)
-#         ax.set_xticklabels([])
-#         ax.set_yticklabels([])
-#         ax.set_zticklabels([])
-#
-#         plt.grid()
-#
-#     cbar = figsb1.colorbar(trisurfplot, ax=axes1.ravel().tolist(), shrink=0.75,
-#                            orientation='vertical', fraction=0.05, pad=0.05,
-#                            anchor=(0.5, -4.0))
-#
-#     plt.subplots_adjust(left=0.0, right=1.0, bottom=0.08, top=1.0)
-#     plt.show()
-#     # plt.savefig('spectral.svg', facecolor='w', edgecolor='w',
-#     #             orientation='portrait', transparent=False, pad_inches=0.1)
-#
-#
-#     fig_dir = ""
-#     for i in range(len(BF_list)):
-#         verts = LBO_reconstruction(basis_functions, BF_list[i])
-#         filename = 'mesh_' + str(BF_list[i]) + '.ply'
-#         my_write_ply_file(verts, trilist, fig_dir+filename)
+from ply_writer import write_ply_file, stl_obj_to_ply
 
 
 class MeshHarmonics:
@@ -139,6 +24,22 @@ class MeshHarmonics:
         self.file_name = self.file_path.split('/')[-1].split('.')[0]
         self.file_ext = '.' + self.file_path.split('/')[-1].split('.')[1]
         self.pvmesh = pv.read(self.file_path)
+
+        if self.file_ext == '.ply':
+            pass
+
+        elif self.file_ext == '.stl' or self.file_ext == '.obj':
+            print('{} file'.format(self.file_ext))
+            ply_path = self.file_path.replace(self.file_ext, '.ply')
+            stl_obj_to_ply(self.pvmesh, ply_path)
+            self.file_path = ply_path
+            self.file_ext = self.file_path.split('.')[-1]
+            self.pvmesh = pv.read(self.file_path)
+
+        else:
+            'Not tested files with {} extension'.format(self.file_ext)
+
+        self.result_path = '../results/file_' + self.file_name + '/'
 
         if type(n_vertices) == int and self.pvmesh.n_points != n_vertices:
             new_mesh = pyacvd.Clustering(self.pvmesh)
@@ -156,12 +57,18 @@ class MeshHarmonics:
         self.LaplacianMatrix = np.array(self.tm_mesh.laplacianmatrix('half_cotangent'))
         self.basis_functions, self.natural_freqs = sb.SpharaBasis(self.tm_mesh, 'unit').basis()
 
+        subdirs = ['meshes', 'figures']
+        for subdir in subdirs:
+            try:
+                os.makedirs(self.result_path + subdir)
+            except FileExistsError:
+                pass
 
-    def LBO_reconstruction(self, basis_functions, EV_upper):
+    def LBO_reconstruction(self, basis_functions, EV_upper, EV_lower=0):
         # each colomn in EV matrix phi is an eigenvector
         phi = basis_functions  # phi = eigenvector matrix
         phi_rec = np.zeros([len(phi), len(phi)])
-        phi_rec[:, :EV_upper] = phi[:, :EV_upper]
+        phi_rec[:, EV_lower:EV_upper] = phi[:, EV_lower:EV_upper]
         phi_t = phi_rec.T
 
         # eigenvector multiplied with vertices x,y,z
@@ -176,26 +83,73 @@ class MeshHarmonics:
         p_rec = np.stack([px_rec, py_rec, pz_rec])
 
         self.reconstr_verts = p_rec.T
-        reconstr_filepath = '../results/' + self.file_name +'_' + str(EV_upper) + '.ply'
+
+        reconstr_filepath = self.result_path + 'meshes/' + self.file_name + '_' + str(EV_upper) + '.ply'
 
         write_ply_file(self.reconstr_verts, self.trilist, reconstr_filepath)
         print('Mesh reconstructed (using {} eigen vectors): {}'.format(EV_upper, reconstr_filepath))
 
+    def plot_harmonics(self, EV_list: type=list):
 
+        if len(EV_list) <= 3:
+            n_cols = len(EV_list)
+            n_rows = 1
+        else:
+            n_cols = int(np.ceil(np.sqrt(len(EV_list))))
+            n_rows = int(np.round(np.sqrt(len(EV_list))))
 
-# class LossView:
-#
-#     @staticmethod
-#     def plot_loss(train_list, val_list):
-#         line1, = plt.plot(train_list, label="train loss", linestyle='--')
-#         line2, = plt.plot(val_list, label="valid loss", linewidth=4)
-#
-#         # Create legend for both lines
-#         plt.legend(handles=[line1, line2], loc='upper right')
-#         plt.show()
+        figsb1, axes1 = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(n_cols * 2, n_cols * 2),
+                                     subplot_kw={'projection': '3d'})
+
+        plt.suptitle('Surface Harmonics\n {}'.format(self.file_name + self.file_ext))
+
+        for i in range(len(EV_list)):
+
+            colors = np.mean(self.basis_functions[self.trilist, EV_list[i]], axis=1)
+            if len(EV_list)>1:
+                ax = axes1.flat[i]
+            else:
+                ax = axes1
+
+            ax.view_init(elev=70., azim=15.)
+            ax.set_aspect('auto')
+            ax.set_axis_off()
+            ax.set_title('e = ' + str(EV_list[i]))
+
+            trisurfplot = ax.plot_trisurf(self.vertlist[:, 0], self.vertlist[:, 1],
+                                          self.vertlist[:, 2], triangles=self.trilist,
+                                          cmap=plt.cm.bwr,
+                                          edgecolor='white', linewidth=0.)
+            trisurfplot.set_array(colors)
+            plt.tight_layout()
+
+        # remove empty plots:
+        if len(EV_list) > 1 and (n_rows*n_cols %2==0 or n_rows==n_cols):
+            ax_diff = (n_cols*n_rows)-len(EV_list)
+            for i in range(ax_diff+1):
+                axes1[-1, -i].axis('off')
+
+        plt.tight_layout()
+        for f_ext in ['.png', '.svg']:
+            plt.savefig(self.result_path + 'figures/' + self.file_name + '_' + str(len(EV_list)) + '_harmonics' + f_ext,
+                        facecolor='w', edgecolor='w', orientation='portrait', transparent=False, pad_inches=0.1)
+
 
 if __name__ == '__main__':
-    M = MeshHarmonics('../data/test.ply', n_vertices=1000)
-
+    M_ply = MeshHarmonics('../data/ply_test.ply', n_vertices=1000)
     # reconstruct meshes
-    M.LBO_reconstruction(basis_functions=M.basis_functions, EV_upper=1000)
+    M_ply.LBO_reconstruction(basis_functions=M_ply.basis_functions, EV_upper=100)
+    # plot harmonics
+    M_ply.plot_harmonics(EV_list=[2,5,7,10,30,50,80])
+
+    M_obj = MeshHarmonics('../data/obj_test.obj', n_vertices=1000)
+    # reconstruct meshes
+    M_obj.LBO_reconstruction(basis_functions=M_obj.basis_functions, EV_upper=100)
+    # plot harmonics
+    M_obj.plot_harmonics(EV_list=[2,5,7,10,30,50,80])
+
+    M_stl = MeshHarmonics('../data/stl_test.stl', n_vertices=1000)
+    # reconstruct meshes
+    M_stl.LBO_reconstruction(basis_functions=M_stl.basis_functions, EV_upper=100)
+    # plot harmonics
+    M_stl.plot_harmonics(EV_list=[2,5,7,10,30,50,80])
