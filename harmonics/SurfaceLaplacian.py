@@ -1,5 +1,6 @@
 # modules
 import os
+import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -8,8 +9,9 @@ import pyvista as pv
 import spharapy.spharabasis as sb
 import spharapy.trimesh as tm
 
-from ply_writer import write_ply_file, stl_obj_to_ply
-
+from harmonics.ply_writer import write_ply_file, stl_obj_to_ply
+warnings.filterwarnings("ignore")
+cwd = os.getcwd().replace('\\', '/')
 
 class MeshHarmonics:
     """
@@ -29,7 +31,6 @@ class MeshHarmonics:
             pass
 
         elif self.file_ext == '.stl' or self.file_ext == '.obj':
-            print('{} file'.format(self.file_ext))
             ply_path = self.file_path.replace(self.file_ext, '.ply')
             stl_obj_to_ply(self.pvmesh, ply_path)
             self.file_path = ply_path
@@ -39,14 +40,14 @@ class MeshHarmonics:
         else:
             'Not tested files with {} extension'.format(self.file_ext)
 
-        self.result_path = '../results/file_' + self.file_name + '/'
+        self.result_path = cwd+'/results/file_' + self.file_name + '/'
 
         if type(n_vertices) == int and self.pvmesh.n_points != n_vertices:
             new_mesh = pyacvd.Clustering(self.pvmesh)
             new_mesh.subdivide(3)
             new_mesh.cluster(n_vertices)
             self.pvmesh = new_mesh.create_mesh()
-            print('Mesh resampled for analysis (n_vertices = {}).'.format(n_vertices))
+            print('Mesh resampled for analysis (n_vertices = {})'.format(n_vertices))
 
         self.vertlist = np.array(self.pvmesh.points)
         self.trilist = np.array(self.pvmesh.faces)
@@ -57,7 +58,7 @@ class MeshHarmonics:
         self.LaplacianMatrix = np.array(self.tm_mesh.laplacianmatrix('half_cotangent'))
         self.basis_functions, self.natural_freqs = sb.SpharaBasis(self.tm_mesh, 'unit').basis()
 
-        subdirs = ['meshes', 'figures']
+        subdirs = ['meshes_'+str(len(self.vertlist))+'_vertices', 'figures_'+str(len(self.vertlist))+'_vertices']
         for subdir in subdirs:
             try:
                 os.makedirs(self.result_path + subdir)
@@ -84,10 +85,10 @@ class MeshHarmonics:
 
         self.reconstr_verts = p_rec.T
 
-        reconstr_filepath = self.result_path + 'meshes/' + self.file_name + '_' + str(EV_upper) + '.ply'
+        reconstr_filepath = self.result_path + 'meshes_'+str(len(self.vertlist))+'_vertices/' + self.file_name + '_' + str(EV_upper) + '.ply'
 
         write_ply_file(self.reconstr_verts, self.trilist, reconstr_filepath)
-        print('Mesh reconstructed (using {} eigen vectors): {}'.format(EV_upper, reconstr_filepath))
+        print('Mesh reconstructed (using eigenvectors {}-{}): {} \n'.format(EV_lower, EV_upper, reconstr_filepath))
 
     def plot_harmonics(self, EV_list: type=list):
 
@@ -131,25 +132,10 @@ class MeshHarmonics:
 
         plt.tight_layout()
         for f_ext in ['.png', '.svg']:
-            plt.savefig(self.result_path + 'figures/' + self.file_name + '_' + str(len(EV_list)) + '_harmonics' + f_ext,
+            plt.savefig(self.result_path + 'figures_'+str(len(self.vertlist))+'_vertices/' + self.file_name + '_' +
+                        str(len(EV_list)) + '_harmonics' + f_ext,
                         facecolor='w', edgecolor='w', orientation='portrait', transparent=False, pad_inches=0.1)
 
 
 if __name__ == '__main__':
-    M_ply = MeshHarmonics('../data/ply_test.ply', n_vertices=1000)
-    # reconstruct meshes
-    M_ply.LBO_reconstruction(basis_functions=M_ply.basis_functions, EV_upper=100)
-    # plot harmonics
-    M_ply.plot_harmonics(EV_list=[2,5,7,10,30,50,80])
-
-    M_obj = MeshHarmonics('../data/obj_test.obj', n_vertices=1000)
-    # reconstruct meshes
-    M_obj.LBO_reconstruction(basis_functions=M_obj.basis_functions, EV_upper=100)
-    # plot harmonics
-    M_obj.plot_harmonics(EV_list=[2,5,7,10,30,50,80])
-
-    M_stl = MeshHarmonics('../data/stl_test.stl', n_vertices=1000)
-    # reconstruct meshes
-    M_stl.LBO_reconstruction(basis_functions=M_stl.basis_functions, EV_upper=100)
-    # plot harmonics
-    M_stl.plot_harmonics(EV_list=[2,5,7,10,30,50,80])
+    print('LBO')

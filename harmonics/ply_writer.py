@@ -28,7 +28,6 @@ def write_ply_file(points, faces, savepath):
             # WARNING: Subtracts 1 to vertex ID because PLY indices start at 0 and OBJ at 1
             fileOut.write("3 " + str(f[0]) + " " + str(f[1]) + " " + str(f[2]) + "\n")
 
-
 def stl_obj_to_ply(mesh, savepath):
     points = mesh.points
     faces = mesh.faces
