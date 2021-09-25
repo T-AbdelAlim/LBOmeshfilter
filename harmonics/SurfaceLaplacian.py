@@ -10,6 +10,8 @@ import spharapy.spharabasis as sb
 import spharapy.trimesh as tm
 
 from harmonics.ply_writer import write_ply_file, stl_obj_to_ply
+from mapping.distance_map import calc_dmap, show_dmap
+
 warnings.filterwarnings("ignore")
 cwd = os.getcwd().replace('\\', '/')
 
@@ -61,14 +63,7 @@ class MeshHarmonics:
         self.LaplacianMatrix = np.array(self.tm_mesh.laplacianmatrix('half_cotangent'))
         self.basis_functions, self.natural_freqs = sb.SpharaBasis(self.tm_mesh, 'unit').basis()
 
-        subdirs = ['meshes_'+str(len(self.vertlist))+'_vertices', 'figures_'+str(len(self.vertlist))+'_vertices']
-        for subdir in subdirs:
-            try:
-                os.makedirs(self.result_path + subdir)
-            except FileExistsError:
-                pass
-
-    def LBO_reconstruction(self, basis_functions, EV_upper, EV_lower=0):
+    def LBO_reconstruction(self, basis_functions, EV_upper, EV_lower=0, write_ply = True):
         # each colomn in EV matrix phi is an eigenvector
         phi = basis_functions  # phi = eigenvector matrix
         phi_rec = np.zeros([len(phi), len(phi)])
@@ -88,12 +83,25 @@ class MeshHarmonics:
 
         self.reconstr_verts = p_rec.T
 
-        reconstr_filepath = self.result_path + 'meshes_'+str(len(self.vertlist))+'_vertices/' + self.file_name + '_' + str(EV_upper) + '.ply'
+        if write_ply == True:
+            try:
+                os.makedirs(self.result_path + 'meshes_' + str(len(self.vertlist)) + '_vertices')
+            except FileExistsError:
+                pass
 
-        write_ply_file(self.reconstr_verts, self.trilist, reconstr_filepath)
-        print('Mesh reconstructed (using eigenvectors {}-{}): {}'.format(EV_lower, EV_upper, reconstr_filepath))
+            reconstr_filepath = self.result_path + 'meshes_'+str(len(self.vertlist))+'_vertices/' + self.file_name + '_' + str(EV_upper) + '.ply'
+            write_ply_file(self.reconstr_verts, self.trilist, reconstr_filepath)
+            print('Mesh reconstructed (using eigenvectors {}-{}): {}'.format(EV_lower, EV_upper, reconstr_filepath))
+
+        else:
+            pass
 
     def plot_harmonics(self, EV_list: type=list):
+
+        try:
+            os.makedirs(self.result_path + 'figures_' + str(len(self.vertlist)) + '_vertices')
+        except FileExistsError:
+            pass
 
         if len(EV_list) <= 3:
             n_cols = len(EV_list)
@@ -138,6 +146,10 @@ class MeshHarmonics:
             plt.savefig(self.result_path + 'figures_'+str(len(self.vertlist))+'_vertices/' + self.file_name + '_' +
                         str(len(EV_list)) + '_harmonics' + f_ext,
                         facecolor='w', edgecolor='w', orientation='portrait', transparent=False, pad_inches=0.1)
+
+
+    def distance_error(self, mesh_vertices, reference_mesh):
+        self.RSS = calc_dmap(mesh_vertices, reference_mesh)
 
 
 if __name__ == '__main__':
