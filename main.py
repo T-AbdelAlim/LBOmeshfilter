@@ -23,7 +23,7 @@ if __name__ == '__main__':
     DE_list = [] # coordinate distance errors
     NE_list = [] # point normal errors
     VE_list = [] # volume errors
-    for i in range(100,5000,100):
+    for i in range(50,1000,10):
         mesh.LBO_reconstruction(basis_functions=mesh.basis_functions, EV_upper=i, write_ply=False)
         write_ply_file(mesh.reconstr_verts, mesh.trilist, 'temp.ply')
 
