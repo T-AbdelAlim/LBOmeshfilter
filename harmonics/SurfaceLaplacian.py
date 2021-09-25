@@ -21,7 +21,7 @@ class MeshHarmonics:
     :param ...: ...
     """
 
-    def __init__(self, path_to_mesh, n_vertices='default'):
+    def __init__(self, path_to_mesh, n_vertices='default', examples=False):
         self.file_path = path_to_mesh
         self.file_name = self.file_path.split('/')[-1].split('.')[0]
         self.file_ext = '.' + self.file_path.split('/')[-1].split('.')[1]
@@ -40,7 +40,10 @@ class MeshHarmonics:
         else:
             'Not tested files with {} extension'.format(self.file_ext)
 
-        self.result_path = cwd+'/results/file_' + self.file_name + '/'
+        if examples == True:
+            self.result_path = cwd+'/examples/results/file_' + self.file_name + '/'
+        else:
+            self.result_path = cwd +'/results/file_' + self.file_name + '/'
 
         if type(n_vertices) == int and self.pvmesh.n_points != n_vertices:
             new_mesh = pyacvd.Clustering(self.pvmesh)
