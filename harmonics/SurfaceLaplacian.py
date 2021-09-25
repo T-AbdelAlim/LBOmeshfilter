@@ -91,7 +91,7 @@ class MeshHarmonics:
         reconstr_filepath = self.result_path + 'meshes_'+str(len(self.vertlist))+'_vertices/' + self.file_name + '_' + str(EV_upper) + '.ply'
 
         write_ply_file(self.reconstr_verts, self.trilist, reconstr_filepath)
-        print('Mesh reconstructed (using eigenvectors {}-{}): {} \n'.format(EV_lower, EV_upper, reconstr_filepath))
+        print('Mesh reconstructed (using eigenvectors {}-{}): {}'.format(EV_lower, EV_upper, reconstr_filepath))
 
     def plot_harmonics(self, EV_list: type=list):
 
