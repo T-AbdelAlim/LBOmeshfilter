@@ -4,10 +4,11 @@ import numpy as np
 
 def calc_dmap(mesh_vertices, ref_vertices):
 
-    distance11 = mesh_vertices - ref_vertices
-    distance11 = np.sqrt(distance11[:,0]*distance11[:,0] + distance11[:,1]*distance11[:,1] +distance11[:,2]*distance11[:,2])
-    RSS = np.sum(distance11)
-    return float(RSS)
+    distance = mesh_vertices - ref_vertices
+    distance = np.sqrt(distance[:,0]*distance[:,0] + distance[:,1]*distance[:,1] +distance[:,2]*distance[:,2])
+    result_error = np.sum(distance)
+
+    return float(result_error)
 
 
 def show_dmap(visualized_mesh, reference_mesh, show=True):
@@ -36,6 +37,6 @@ if __name__ == '__main__':
 
     c = pv.read(clean_mesh)
     r = pv.read(raw_mesh)
-    calc_dmap(mesh_vertices=c.points, ref_vertices=r.points)
+    calc_dmap(mesh_vertices=c, ref_vertices=r)
 
     show_dmap(visualized_mesh=raw_mesh, reference_mesh=clean_mesh)

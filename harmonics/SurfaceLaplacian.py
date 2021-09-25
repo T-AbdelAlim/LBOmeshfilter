@@ -148,8 +148,14 @@ class MeshHarmonics:
                         facecolor='w', edgecolor='w', orientation='portrait', transparent=False, pad_inches=0.1)
 
 
-    def distance_error(self, mesh_vertices, reference_mesh):
-        self.RSS = calc_dmap(mesh_vertices, reference_mesh)
+    def calc_distance_error(self, mesh_vertices, reference_mesh):
+        self.dist_error = calc_dmap(mesh_vertices, reference_mesh)
+
+    def calc_normal_error(self, mesh_normals, reference_normals):
+        self.norm_error = calc_dmap(mesh_normals, reference_normals)
+
+    def calc_volume_error(self, pv_mesh, pv_reference_mesh):
+        self.volume_error = (pv_mesh.volume - pv_reference_mesh.volume)
 
 
 if __name__ == '__main__':
