@@ -25,8 +25,8 @@ class MeshHarmonics:
 
     def __init__(self, path_to_mesh, n_vertices='default', examples=False):
         self.file_path = path_to_mesh
-        self.file_name = self.file_path.split('/')[-1].split('.')[0]
-        self.file_ext = '.' + self.file_path.split('/')[-1].split('.')[1]
+        self.file_name = self.file_path.name.split('.')[0]
+        self.file_ext = '.' + self.file_path.suffix
         self.pvmesh = pv.read(self.file_path)
 
         if self.file_ext == '.ply':
