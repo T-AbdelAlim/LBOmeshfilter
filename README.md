@@ -2,7 +2,7 @@
 
 Every surface mesh can be characterized by a combination of its most prominent frequency components, or surface harmonics. The Laplace-Beltrami operator, is a discretized method to determine the surface harmonics at each vertex. 
 
-LBOmeshfilter allows reconstruction of a 3D surface mesh using the first n eigenvectors, which can be useful for different mesh processing. When all eigenvectors are used for reconstruction, the original mesh is generated. 
+LBOmeshfilter allows reconstruction of a 3D surface mesh using the first n eigenvectors, which can be useful for different mesh processing tasks. When all eigenvectors are used for reconstruction, the original mesh is generated. 
 
 ## Installation and usage
 Project is created with:
