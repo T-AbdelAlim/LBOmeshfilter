@@ -113,7 +113,7 @@ class MeshHarmonics:
         figsb1, axes1 = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(n_cols * 2, n_cols * 2),
                                      subplot_kw={'projection': '3d'})
 
-        plt.suptitle('Surface Harmonics\n {}'.format(self.file_name + self.file_ext))
+        plt.suptitle('Surface Harmonics\n {}'.format(self.file_name))
 
         for i in range(len(EV_list)):
 
