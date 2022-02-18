@@ -20,8 +20,9 @@ class MeshHarmonics:
     """
     Mesh Harmonics Class
 
-    :param file_name: String representing the filename
-    :param ...: ...
+    Main methods
+        LBO_reconstruction - reconstruct mesh based on n-eigen vectors
+        plot_harmonics - visualize harmonic frequencies on a mesh
     """
 
     def __init__(self, path_to_mesh, n_vertices='default', examples=False):
@@ -112,7 +113,7 @@ class MeshHarmonics:
 
     def plot_harmonics(self, EV_list: type = list):
         """
-        Function to plot specific eigen vector frequencies on the original mesh
+        Function to plot specific harmonic frequencies on the original mesh
 
         :param basis_functions: Input the eigenvector matrix (MeshHarmonics.basisfunctions)
         :param EV_list: list of eigenvectors to be plotted (e.g. [10,200,500])
