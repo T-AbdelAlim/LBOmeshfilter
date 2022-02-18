@@ -15,6 +15,7 @@ from mapping.distance_map import calc_dmap, show_dmap
 warnings.filterwarnings("ignore")
 cwd = os.getcwd().replace('\\', '/')
 
+
 class MeshHarmonics:
     """
     Mesh Harmonics Class
@@ -43,9 +44,9 @@ class MeshHarmonics:
             'Not tested files with {} extension'.format(self.file_ext)
 
         if examples == True:
-            self.result_path = cwd+'/examples/results/file_' + self.file_name + '/'
+            self.result_path = cwd + '/examples/results/file_' + self.file_name + '/'
         else:
-            self.result_path = cwd +'/results/file_' + self.file_name + '/'
+            self.result_path = cwd + '/results/file_' + self.file_name + '/'
 
         if type(n_vertices) == int and self.pvmesh.n_points != n_vertices:
             new_mesh = pyacvd.Clustering(self.pvmesh)
@@ -63,7 +64,19 @@ class MeshHarmonics:
         self.LaplacianMatrix = np.array(self.tm_mesh.laplacianmatrix('half_cotangent'))
         self.basis_functions, self.natural_freqs = sb.SpharaBasis(self.tm_mesh, 'unit').basis()
 
-    def LBO_reconstruction(self, basis_functions, EV_upper, EV_lower=0, write_ply = True):
+    def LBO_reconstruction(self, basis_functions, EV_upper, EV_lower=0, write_ply=True):
+        """
+        Function that reconstructs a mesh from a desired number of eigenvectors
+
+        :param basis_functions: Input the eigenvector matrix (MeshHarmonics.basisfunctions)
+        :param EV_upper: n eigenvectors upper limit to reconstruct the mesh
+        :param EV_lower: n eigenvectors lwer limit to reconstruct the mesh (default: 0)
+        :param write_ply: Boolean true if user wants to write and save a ply file of the reconstructed mesh
+        :return:
+        reconstructed vertices (x,y,z) from the number of eigenvectors,
+        if write_ply = True (default), a reconstructed mesh is saved as ply_filename_nEV.ply
+        """
+
         # each colomn in EV matrix phi is an eigenvector
         phi = basis_functions  # phi = eigenvector matrix
         phi_rec = np.zeros([len(phi), len(phi)])
@@ -89,14 +102,22 @@ class MeshHarmonics:
             except FileExistsError:
                 pass
 
-            reconstr_filepath = self.result_path + 'meshes_'+str(len(self.vertlist))+'_vertices/' + self.file_name + '_' + str(EV_upper) + '.ply'
+            reconstr_filepath = self.result_path + 'meshes_' + str(
+                len(self.vertlist)) + '_vertices/' + self.file_name + '_' + str(EV_upper) + '.ply'
             write_ply_file(self.reconstr_verts, self.trilist, reconstr_filepath)
             print('Mesh reconstructed (using eigenvectors {}-{}): {}'.format(EV_lower, EV_upper, reconstr_filepath))
 
         else:
             pass
 
-    def plot_harmonics(self, EV_list: type=list):
+    def plot_harmonics(self, EV_list: type = list):
+        """
+        Function to plot specific eigen vector frequencies on the original mesh
+
+        :param basis_functions: Input the eigenvector matrix (MeshHarmonics.basisfunctions)
+        :param EV_list: list of eigenvectors to be plotted (e.g. [10,200,500])
+        :return: Figure saved of the plotted harmonic frequencies corresponding to the eigenvectors in EV_list
+        """
 
         try:
             os.makedirs(self.result_path + 'figures_' + str(len(self.vertlist)) + '_vertices')
@@ -118,7 +139,7 @@ class MeshHarmonics:
         for i in range(len(EV_list)):
 
             colors = np.mean(self.basis_functions[self.trilist, EV_list[i]], axis=1)
-            if len(EV_list)>1:
+            if len(EV_list) > 1:
                 ax = axes1.flat[i]
             else:
                 ax = axes1
@@ -136,25 +157,45 @@ class MeshHarmonics:
             plt.tight_layout()
 
         # remove empty plots:
-        if len(EV_list) > 1 and (n_rows*n_cols %2==0 or n_rows==n_cols):
-            ax_diff = (n_cols*n_rows)-len(EV_list)
-            for i in range(ax_diff+1):
+        if len(EV_list) > 1 and (n_rows * n_cols % 2 == 0 or n_rows == n_cols):
+            ax_diff = (n_cols * n_rows) - len(EV_list)
+            for i in range(ax_diff + 1):
                 axes1[-1, -i].axis('off')
 
         plt.tight_layout()
         for f_ext in ['.png', '.svg']:
-            plt.savefig(self.result_path + 'figures_'+str(len(self.vertlist))+'_vertices/' + self.file_name + '_' +
+            plt.savefig(self.result_path + 'figures_' + str(len(self.vertlist)) + '_vertices/' + self.file_name + '_' +
                         str(len(EV_list)) + '_harmonics' + f_ext,
                         facecolor='w', edgecolor='w', orientation='portrait', transparent=False, pad_inches=0.1)
 
+    def calc_distance_error(self, mesh_vertices, reference_vertices):
+        """
+        Function that calculates the difference between two sets of vertices
 
-    def calc_distance_error(self, mesh_vertices, reference_mesh):
-        self.dist_error = calc_dmap(mesh_vertices, reference_mesh)
+        :param mesh_vertices: Vertices of source mesh
+        :param reference_vertices: Vertices of reference mesh
+        :return:
+        """
+        self.dist_error = calc_dmap(mesh_vertices, reference_vertices)
 
     def calc_normal_error(self, mesh_normals, reference_normals):
+        """
+        Function that calculates the difference between two sets of normal vectors
+
+        :param mesh_vertices: Vertices of source mesh
+        :param reference_vertices: Vertices of reference mesh
+        :return:
+        """
         self.norm_error = calc_dmap(mesh_normals, reference_normals)
 
     def calc_volume_error(self, pv_mesh, pv_reference_mesh):
+        """
+        Function that calculates the difference between two mesh volumes
+
+        :param mesh_vertices: Vertices of source mesh
+        :param reference_vertices: Vertices of reference mesh
+        :return:
+        """
         self.volume_error = (pv_mesh.volume - pv_reference_mesh.volume)
 
 
