@@ -1,4 +1,3 @@
-# modules
 import os
 import warnings
 
@@ -9,11 +8,13 @@ import pyvista as pv
 import spharapy.spharabasis as sb
 import spharapy.trimesh as tm
 
+from pathlib import Path
+
 from harmonics.ply_writer import write_ply_file, stl_obj_to_ply
 from mapping.distance_map import calc_dmap, show_dmap
 
 warnings.filterwarnings("ignore")
-cwd = os.getcwd().replace('\\', '/')
+cwd = Path(os.getcwd())
 
 
 class MeshHarmonics:
@@ -26,9 +27,10 @@ class MeshHarmonics:
     """
 
     def __init__(self, path_to_mesh, n_vertices='default', examples=False):
-        self.file_path = path_to_mesh
-        self.file_name = self.file_path.name.split('.')[0]
-        self.file_ext = '.' + self.file_path.suffix
+        self.file_path = Path(path_to_mesh)
+
+        self.file_name = self.file_path.name
+        self.file_ext = self.file_path.suffix
         self.pvmesh = pv.read(self.file_path)
 
         if self.file_ext == '.ply':
@@ -45,9 +47,9 @@ class MeshHarmonics:
             'Not tested files with {} extension'.format(self.file_ext)
 
         if examples == True:
-            self.result_path = cwd + '/examples/results/file_' + self.file_name + '/'
+            self.result_path = cwd.joinpath('examples/results/file_' + self.file_name + '/')
         else:
-            self.result_path = cwd + '/results/file_' + self.file_name + '/'
+            self.result_path = cwd.joinpath('results/file_' + self.file_name + '/')
 
         if type(n_vertices) == int and self.pvmesh.n_points != n_vertices:
             new_mesh = pyacvd.Clustering(self.pvmesh)
@@ -99,12 +101,12 @@ class MeshHarmonics:
 
         if write_ply == True:
             try:
-                os.makedirs(self.result_path + 'meshes_' + str(len(self.vertlist)) + '_vertices')
+                os.makedirs(self.result_path.joinpath('meshes_' + str(len(self.vertlist)) + '_vertices'))
             except FileExistsError:
                 pass
 
-            reconstr_filepath = self.result_path + 'meshes_' + str(
-                len(self.vertlist)) + '_vertices/' + self.file_name + '_' + str(EV_upper) + '.ply'
+            reconstr_filepath = self.result_path.joinpath('meshes_' + str(
+                len(self.vertlist)) + '_vertices/' + self.file_name + '_' + str(EV_upper) + '.ply')
             write_ply_file(self.reconstr_verts, self.trilist, reconstr_filepath)
             print('Mesh reconstructed (using eigenvectors {}-{}): {}'.format(EV_lower, EV_upper, reconstr_filepath))
 
@@ -121,7 +123,7 @@ class MeshHarmonics:
         """
 
         try:
-            os.makedirs(self.result_path + 'figures_' + str(len(self.vertlist)) + '_vertices')
+            os.makedirs(self.result_path.joinpath('figures_' + str(len(self.vertlist)) + '_vertices'))
         except FileExistsError:
             pass
 
@@ -165,8 +167,8 @@ class MeshHarmonics:
 
         plt.tight_layout()
         for f_ext in ['.png', '.svg']:
-            plt.savefig(self.result_path + 'figures_' + str(len(self.vertlist)) + '_vertices/' + self.file_name + '_' +
-                        str(len(EV_list)) + '_harmonics' + f_ext,
+            plt.savefig(self.result_path.joinpath('figures_' + str(len(self.vertlist)) + '_vertices/' + self.file_name + '_' +
+                        str(len(EV_list)) + '_harmonics' + f_ext),
                         facecolor='w', edgecolor='w', orientation='portrait', transparent=False, pad_inches=0.1)
 
     def calc_distance_error(self, mesh_vertices, reference_vertices):
