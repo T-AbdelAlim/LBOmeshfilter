@@ -13,9 +13,9 @@ if __name__ == '__main__':
     except FileExistsError:
         pass
 
-    eigenvectors=[10, 50, 75, 100, 150, 300]
+    eigenvectors=[10, 300]
     # calculate basis functions and natural frequencies:
-    M_ply = MeshHarmonics(Path(examples_path, 'data/ply_bunny.ply'), n_vertices=1000, examples=True)
+    M_ply = MeshHarmonics(Path(examples_path, 'data/ply_bunny.ply'), n_vertices=1000, examples=False)
 
     # plot harmonics
     M_ply.plot_harmonics(EV_list=eigenvectors)

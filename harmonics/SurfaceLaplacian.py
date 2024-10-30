@@ -65,6 +65,11 @@ class MeshHarmonics:
         self.tm_mesh = tm.TriMesh(self.trilist, self.vertlist)
 
         self.LaplacianMatrix = np.array(self.tm_mesh.laplacianmatrix('half_cotangent'))
+
+        self.LPclean = np.zeros(np.shape(self.LaplacianMatrix))
+        np.fill_diagonal(self.LPclean, np.diag(self.LaplacianMatrix))
+        self.LaplacianMatrix = self.LPclean
+
         self.basis_functions, self.natural_freqs = sb.SpharaBasis(self.tm_mesh, 'unit').basis()
 
     def LBO_reconstruction(self, basis_functions, EV_upper, EV_lower=0, write_ply=True):
@@ -200,6 +205,29 @@ class MeshHarmonics:
         :return:
         """
         self.volume_error = (pv_mesh.volume - pv_reference_mesh.volume)
+
+
+    def plot_EVs(self, ref_natural_freqs='ref', n_EVs='Default'):
+        """
+        Function that plots the eigen values vs the eigen values' index.
+
+        :param mesh_EV_array: Eigenvalues (natural frequencies) of the mesh
+        :param reference_vertices: Eigenvalues (natural frequencies) of the reference mesh
+        :return:
+        """
+
+        if n_EVs == 'Default':
+            n_EVs = len(self.natural_freqs)
+
+        # plot lines
+        plt.plot(self.natural_freqs[0: n_EVs], label="mesh")
+        try:
+            plt.plot(ref_natural_freqs[0: n_EVs], label="reference")
+        except:
+            pass
+        plt.legend()
+        plt.show()
+
 
 
 if __name__ == '__main__':

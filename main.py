@@ -10,13 +10,14 @@ if __name__ == '__main__':
     print(f'=============================================')
     data_path = Path("./data/")
 
-    eigenvectors=[50, 250, 500, 750, 1000, 2250, 3500, 4000, 4999]
+    eigenvectors=[5, 10, 15, 20, 25, 30, 35, 40, 50]
 
-    ref_mesh = MeshHarmonics(Path(data_path, 'clean.ply'), n_vertices=5000)
+    ref_mesh = MeshHarmonics(Path(data_path, 'FB_temp.ply'), n_vertices=5000)
     ref_mesh.plot_harmonics(EV_list=eigenvectors)
     plt.show()
+
     # calculate basis functions and natural frequencies:
-    mesh = MeshHarmonics(Path(data_path, 'raw.ply'), n_vertices=5000)
+    mesh = MeshHarmonics(Path(data_path, 'FB_pt.ply'), n_vertices=5000)
     mesh.plot_harmonics(EV_list=eigenvectors)
     plt.show()
 
@@ -25,7 +26,7 @@ if __name__ == '__main__':
     NE_list = [] # point normal errors
     VE_list = [] # volume errors
 
-    for i in range(50,200,5):
+    for i in range(5,50,5):
         mesh.LBO_reconstruction(basis_functions=mesh.basis_functions, EV_upper=i, write_ply=True)
         write_ply_file(mesh.reconstr_verts, mesh.trilist, 'temp.ply') # create temp file
 
@@ -57,4 +58,4 @@ if __name__ == '__main__':
     # for e in range(len()):
     #     mesh.LBO_reconstruction(basis_functions=mesh.basis_functions+1, EV_upper=e)
 
-    # mesh.plot_harmonics(EV_list=eigenvectors)
+    mesh.plot_harmonics(EV_list=eigenvectors)
